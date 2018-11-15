@@ -1,25 +1,25 @@
 package main
 
 import (
-  "testing"
+	"testing"
 )
 
 func BenchmarkSlow(b *testing.B) {
-  for n := 0; n < b.N; n++ {
-    slow(400000000)
-  }
+	for n := 0; n < b.N; n++ {
+		slow(400000000)
+	}
 }
 
 func BenchmarkFast(b *testing.B) {
-  for n := 0; n < b.N; n++ {
-    fast(400000000)
-  }
+	for n := 0; n < b.N; n++ {
+		fast(400000000)
+	}
 }
 
 func BenchmarkMucho(b *testing.B) {
-  for n := 0; n < b.N; n++ {
-    mucho(400000000)
-  }
+	for n := 0; n < b.N; n++ {
+		mucho(400000000)
+	}
 }
 
 //func BenchmarkFaster(b *testing.B) {
