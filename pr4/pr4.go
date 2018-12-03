@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	//"os"
-	//"strconv"
 )
 
 func rev(n int64) int64 {
@@ -21,19 +19,29 @@ func isPalindrome(n int64) bool {
 	return rev(n) == n
 }
 
-func largestPalindrome(n int64) (int64, int64, int64) {
-	lower := pow(10, n-1)
-	upper := pow(10, n) - 1
+func largestPalindrome(n int) (int64, int64, int64) {
+	lower := int64(100)
+	upper := int64(999)
 
-	for i := upper; i >= lower; i-- {
+	// start iteration at nearest multiple of 11
+	start := (upper / 11) * 11
+
+	largest := int64(0)
+	x := int64(0)
+	y := int64(0)
+	for i := start; i >= lower; i = i - 11 {
 		for j := upper; j >= i; j-- {
 			p := i * j
-			if isPalindrome(p) {
-				return i, j, p
+			if isPalindrome(p) && p > largest {
+				largest = p
+				x = i
+				y = j
+			} else if p < largest {
+				break
 			}
 		}
 	}
-	return 0, 0, 0
+	return x, y, largest
 }
 
 func max(a, b int64) int64 {
@@ -44,12 +52,9 @@ func max(a, b int64) int64 {
 	}
 }
 
-func pow(x, n int64) int64 {
-	if n == 0 {
-		return 1
-	}
+func pow(x int64, n int) int64 {
 	y := int64(1)
-	for n > 1 {
+	for n > 0 {
 		if n%2 == 0 {
 			x = x * x
 			n = n / 2
@@ -59,88 +64,40 @@ func pow(x, n int64) int64 {
 			n = (n - 1) / 2
 		}
 	}
-	return x * y
+	return y
 }
 
-func primes(n int) <-chan int {
-	ch := make(chan int)
-	go func() {
-		sieve := make([]bool, n)
-		for i := 0; i < n; i++ {
-			sieve[i] = true
-		}
-		// mark all even numbers as composite
-		for i := range iterate(4, n, 2) {
-			sieve[i] = false
-		}
-
-		// start with the first prime
-		i := 2
-		for i < n {
-			if sieve[i] {
-				// this is a prime number
-				// send the prime to the channel
-				ch <- i
-
-				// mark all the multiples of i as composite
-				// optimization: step by 2*i starting at 3*i
-				// because we've already marked evens as composite
-				for m := range iterate(i, n, 2*i) {
-					sieve[m] = false
-				}
-			}
-			i = i + 1
-		}
-		close(ch)
-	}()
-	return ch
-}
-
-func iterate(start, stop, step int) <-chan int {
-	ch := make(chan int)
-	go func() {
-		x := start
-		if step > 0 {
-			for x < stop {
-				ch <- x
-				x = x + step
-			}
-		} else {
-			for x > stop {
-				ch <- x
-				x = x + step
-			}
-		}
-		close(ch)
-	}()
-	return ch
-}
-
-func factorize(n int) <-chan int {
-	primes := primes(n)
-	factors := make(chan int)
-	go func() {
-	outer:
-		for p := range primes {
-			if n == 1 {
-				break outer
-			}
-			for n%p == 0 {
-				n = n / p
-				factors <- p
-			}
-		}
-		close(factors)
-	}()
-	return factors
+type pod struct {
+	U int64
+	V int64
+	Z int64
 }
 
 func main() {
-	for i := range iterate(9, -1, -1) {
-		fmt.Println(i)
+	// x, y, z := largestPalindrome(3)
+	// fmt.Printf("%d * %d = %d\n", x, y, z)
+	uniq := make(map[int64]pod)
+	for a := int64(999); a > 99; a = a - 1 {
+		// at each step of a, travese the diagonal up and
+		// to the right
+		// x decrements from a down to 100
+		// y increments from a up to 999
+		for x, y := a, a; x >= 100 && y <= 999; x, y = x-1, y+1 {
+			product := x * y
+			u := (x + y) / 2
+			v := u - x
+			if _, ok := uniq[product]; product%11 == 0 && !ok {
+				uniq[product] = pod{u, v, product}
+			}
+		}
 	}
-	//i, _ := strconv.Atoi(os.Args[1])
-	//for factor := range factorize(i) {
-	//  fmt.Printf("%v\n", factor)
-	//}
+	for _, v := range uniq {
+		fmt.Printf("%d %d %d %d %d\n", v.Z, v.U, v.V, (v.U + v.V), (v.U - v.V))
+	}
+	// for a := int64(999); a > 99; a-- {
+	// 	for b := int64(0); b <= 999-a && b <= a; b++ {
+	// 		p := a*a - b*b
+	// 		fmt.Printf("%d %d %d\n", p, a, b)
+	// 	}
+	// }
 }
